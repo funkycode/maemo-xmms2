@@ -56,7 +56,7 @@ private:
     Ui::MainWindow *ui;
     QString song_info_new;
 
-    QString song_info() const { return song_info_new; }
+    QString song_info;//() const { return song_info_new; }
     void setLabelText(QString song_info);
 
 signals:

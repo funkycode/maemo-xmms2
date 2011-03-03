@@ -72,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect_xmms();
 
     connect(song_info_new, SIGNAL(get_song_info(QString)),
-                          this, SLOT(setTextLabel(QString)));
+                          song_info, SLOT(setTextLabel(QString)));
 
     //connect(setLabelText(QString song_info), SIGNAL(get_song_id(QString song_info_new)), this, SLOT(setLabelText(QString song_info)));
    //this->setLabelText(int song_id);
