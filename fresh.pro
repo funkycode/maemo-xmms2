@@ -13,9 +13,14 @@ symbian:TARGET.CAPABILITY += NetworkServices
 # the following lines and add the respective components to the 
 # MOBILITY variable. 
 CONFIG +=link_pkgconfig
-# MOBILITY +=
+#INCLUDEPATH += /usr/include
+#LIBS += -L/usr/lib-lboost_signal
+# MOBILITY +=-lboost_regex
 #PKGCONFIG += xmms2-client
-PKGCONFIG = xmms2-client\
+PKGCONFIG = glib-2.0\
+            xmms2-client-glib\
+            xmms2-client
+            #libboost_filesystem
 
 SOURCES += main.cpp mainwindow.cpp
 HEADERS += mainwindow.h

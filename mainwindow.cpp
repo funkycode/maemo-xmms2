@@ -9,30 +9,45 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "QLabel"
 #include <QtCore/QCoreApplication>
 #include <stdlib.h>
+#include <string.h>
+#include <iostream>
+#include <cstdlib>
+#include <xmmsclient/xmmsclient-glib.h>
 #include <xmmsclient/xmmsclient.h>
-#include <QObject>
+//#include <xmmsclient/xmmsclient++.h>
+#include <glib.h>
+#include <glib/gprintf.h>
 
+
+static int32_t playback_status = 0;
+static uint32_t play_time = 0;
+static int32_t cur_track_duration = 0;
+static int32_t cur_track_id = 0;
+
+
+
+typedef struct {
+        int id;
+        QString Artist;
+        QString Title;
+} song_info_str;
+
+
+//static int on_playback_status_changed( xmmsv_t *value, void *user_data );
 static xmmsc_connection_t *connection = NULL;
-//static int id=0;
+//static void xmms_callbacks();
+
+void MainWindow::xmmsc_result_notifier_set_and_unref (xmmsc_result_t *result, xmmsc_result_notifier_t func, void *user_data)
+{
+        xmmsc_result_notifier_set_full (result, func, user_data, NULL);
+        xmmsc_result_unref(result);
+}
 
 
 
-
-class Song_DATA : public QObject
- {
-     Q_OBJECT
-
-
- };
-
-
-
-
-
-void connect_xmms()
+void MainWindow::connect_xmms()
 {
     connection = xmmsc_init ("maexmms");
     if (!connection) {
@@ -45,21 +60,31 @@ void connect_xmms()
 
                             exit (EXIT_FAILURE);
                         }
+
+     xmmsc_mainloop_gmain_init (connection);
+
+     xmms_callbacks();
+
+         }
+
+
+
+
+void MainWindow::xmms_callbacks(){
+
+    xmmsc_result_t* result;
+
+    result = xmmsc_playback_status(connection);
+
+    MainWindow::xmmsc_result_notifier_set_and_unref(result, on_playback_status_changed, NULL);
+
+    XMMS_CALLBACK_SET( connection, xmmsc_broadcast_playback_status, on_playback_status_changed, NULL );
 }
 
 class MyWidget : public QWidget
 {
 public:
     MyWidget(QWidget *parent = 0);
-
-    //QLabel *song_info;
-    //QString song_data;
-
-signals:
-   //void setTextLabel();
-
-public slots:
-   // void setTextLabel();
 
 };
 
@@ -68,16 +93,19 @@ public slots:
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
+    //QString song_info;
     ui->setupUi(this);
     connect_xmms();
 
-    connect(song_info_new, SIGNAL(get_song_info(QString)),
-                          song_info, SLOT(setTextLabel(QString)));
+    //connect(get_song_info(), SIGNAL(info_changed()), song_info, SLOT(setTextLabel()));
 
-    //connect(setLabelText(QString song_info), SIGNAL(get_song_id(QString song_info_new)), this, SLOT(setLabelText(QString song_info)));
+    //connect(setLabelText(QStrin song_info), SIGNAL(get_song_id(QString song_info_new)), this, SLOT(setLabelText(QString song_info)));
    //this->setLabelText(int song_id);
 
 }
+
+
+
 
 MainWindow::~MainWindow()
 {
@@ -184,25 +212,34 @@ void MainWindow::on_prev_bt_clicked()
     xmmsc_result_unref (result);
 }
 
-void MainWindow::setLabelText(QString song_info)
+void MainWindow::setLabelText(QString label)
 {
 
+    label="test";
+   /* if (song_info != song_info_new){
 
-    ui->song_info->setText(song_info);
+        song_info = song_info_new;
+        emit get_song_info(song_info_new);
+    }*/
+
+
+    ui->song_info->setText(label);
 
 
 
 
 }
 
-void MainWindow::get_song_info(QString song_info_new)
+
+
+void MainWindow::get_song_info()
 {
     //int id;
     const char *err_buf;
     const char *val;
-    xmmsv_t *dict_entry, *infos, *return_value;
+    xmmsv_t *dict_entry, *return_value, *infos;
     int id;
-    //QString song_info_new;
+    song_info_str song_info;
     xmmsc_result_t *result = xmmsc_playback_current_id (connection);
     xmmsc_result_wait (result);
     return_value = xmmsc_result_get_value (result);
@@ -233,13 +270,13 @@ void MainWindow::get_song_info(QString song_info_new)
                     exit (EXIT_FAILURE);
             }
 
-    printf("%d\n",id);
+    //song_info.id=id;
     infos = xmmsv_propdict_to_dict (return_value, NULL);
     if (!xmmsv_dict_get (infos, "artist", &dict_entry) ||
                 !xmmsv_get_string (dict_entry, &val)) {
         val = "No Artist";
                 }
-    song_info_new=val;
+    song_info.Artist=val;
     if (!xmmsv_dict_get (infos, "title", &dict_entry) ||
                 !xmmsv_get_string (dict_entry, &val)) {
        val = "No Title";
@@ -248,16 +285,45 @@ void MainWindow::get_song_info(QString song_info_new)
 
 
 
-    song_info_new = song_info_new+" - "+val;
+    song_info.Title = val;
 
 
 
     xmmsv_unref (infos);
     xmmsc_result_unref (result);
    // xmmsc_unref (connection);
-
+   ui->song_info->setText(song_info.Title);
 
 
 }
 
+static int on_playback_status_changed( xmmsv_t *value, void *user_data )
+{
+    if ( !xmmsv_get_int(value, &playback_status) )
+        {
+            playback_status = XMMS_PLAYBACK_STATUS_STOP;
+            return TRUE;
+        }
+
+    switch( playback_status )
+        {
+            case XMMS_PLAYBACK_STATUS_PLAY:
+            {
+                //MainWindow::get_song_info();
+            printf("play");
+               break;
+
+            }
+            case XMMS_PLAYBACK_STATUS_STOP:
+               //for now we do nothing, just smile =)
+                break;
+            case XMMS_PLAYBACK_STATUS_PAUSE:
+               //MainWindow->ui->play_bt->setText("Pause");
+
+                break;
+        }
+
+
+
+}
 
