@@ -32,14 +32,11 @@ public:
     virtual ~MainWindow();
     void setOrientation(ScreenOrientation orientation);
     void showExpanded();
-
+    void get_song_info();
 
 
 public slots:
-    void setLabelText(QString label);
 
-
-    void get_song_info();
 private slots:
     void on_play_bt_clicked();
 
@@ -49,34 +46,14 @@ private slots:
 
     void on_prev_bt_clicked();
 
-    //int on_playback_status_changed( xmmsv_t *value, void *user_data )();
-
-    //static void xmms_callbacks();
-
-    void connect_xmms();
-
-    //void setLabelText();
-
-
 
 
 
 private:
+
     Ui::MainWindow *ui;
 
-    //void setLabelText();
-      int my_current_id (xmmsv_t *value, void *userdata);
-
-      int on_playback_status_changed( xmmsv_t *value, void *user_data );
-
-      void xmms_callbacks();
-
-     void xmmsc_result_notifier_set_and_unref (xmmsc_result_t *result, xmmsc_result_notifier_t func, void *user_data);
-
 signals:
-
-   //void get_song_info();
-
 
 
 };

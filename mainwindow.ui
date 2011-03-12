@@ -36,7 +36,7 @@
      <enum>QFrame::Raised</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="song_info">
+   <widget class="QLabel" name="song_info_label">
     <property name="geometry">
      <rect>
       <x>240</x>

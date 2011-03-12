@@ -23,19 +23,28 @@ static int32_t cur_track_duration = 0;
 static int32_t cur_track_id = 0;
 
 
-
-typedef struct {
-        int id;
-        QString Artist;
-        QString Title;
-} song_info_str;
-
-
-//static int on_playback_status_changed( xmmsv_t *value, void *user_data );
+typedef struct _song_info_str{
+    const char *artist;
+    const char *album;
+    const char *title;
+    const char *url;
+    const char *mime;
+    const char *comment;
+    int32_t duration;
+    int32_t isvbr;
+    int32_t bitrate;
+    int32_t size;
+}song_info_str;
+static int on_playback_track_loaded( xmmsv_t* value, void* user_data );
+static int on_playback_started( xmmsv_t* value, void* user_data );
+static int on_playback_status_changed( xmmsv_t *value, void *user_data );
 static xmmsc_connection_t *connection = NULL;
-//static void xmms_callbacks();
+static void xmms_callbacks();
+void setLabelText(QString label);
+static int on_playback_cur_track_changed( xmmsv_t* value, void* user_data );
 
-void MainWindow::xmmsc_result_notifier_set_and_unref (xmmsc_result_t *result, xmmsc_result_notifier_t func, void *user_data)
+
+void xmmsc_result_notifier_set_and_unref (xmmsc_result_t *result, xmmsc_result_notifier_t func, void *user_data)
 {
         xmmsc_result_notifier_set_full (result, func, user_data, NULL);
         xmmsc_result_unref(result);
@@ -43,7 +52,7 @@ void MainWindow::xmmsc_result_notifier_set_and_unref (xmmsc_result_t *result, xm
 
 
 
-void MainWindow::connect_xmms()
+void connect_xmms()
 {
     connection = xmmsc_init ("maexmms");
     if (!connection) {
@@ -66,7 +75,7 @@ void MainWindow::connect_xmms()
 
 //
 
- void MainWindow::xmms_callbacks(){
+ static void xmms_callbacks(){
 
     xmmsc_result_t* result;
 
@@ -75,7 +84,13 @@ void MainWindow::connect_xmms()
     xmmsc_result_notifier_set_and_unref(result, on_playback_status_changed, NULL);
 
     XMMS_CALLBACK_SET( connection, xmmsc_broadcast_playback_status, on_playback_status_changed, NULL );
-}
+
+
+    xmmsc_result_notifier_set_and_unref( result, on_playback_cur_track_changed, NULL );
+
+    XMMS_CALLBACK_SET( connection, xmmsc_broadcast_playback_current_id, on_playback_cur_track_changed, NULL );
+
+ }
 
 class MyWidget : public QWidget
 {
@@ -92,6 +107,7 @@ MainWindow::MainWindow(QWidget *parent)
     //QString song_info;
     ui->setupUi(this);
     connect_xmms();
+    xmms_callbacks();
 
     //connect(get_song_info(), SIGNAL(info_changed()), song_info, SLOT(setTextLabel()));
 
@@ -171,14 +187,19 @@ void MainWindow::showExpanded()
 
 void MainWindow::on_play_bt_clicked()
 {
-
-    xmmsc_result_t *result= xmmsc_playback_start (connection);
-    xmmsc_result_wait (result);
-    xmmsc_result_unref (result);
-    //if (ui->play_bt->text == "Play")
-   // {
-   //     ui->play_bt->setText(tr("Pause"));
-   // }
+    xmmsc_result_t *result;
+        if( playback_status == XMMS_PLAYBACK_STATUS_PLAY )
+        {
+            result = xmmsc_playback_pause(connection);
+            xmmsc_result_notifier_set_and_unref(result, on_playback_started, NULL);
+             ui->play_bt->setText("Play");
+        }
+        else
+        {
+            result = xmmsc_playback_start(connection);
+            xmmsc_result_unref(result);
+            ui->play_bt->setText("Pause");
+        }
 
 
 }
@@ -187,48 +208,45 @@ void MainWindow::on_stop_bt_clicked()
 {
 
     xmmsc_result_t *result= xmmsc_playback_stop (connection);
-    xmmsc_result_wait (result);
+    //xmmsc_result_wait (result);
     xmmsc_result_unref (result);
 }
 void MainWindow::on_next_bt_clicked()
 {
     xmmsc_result_t *result = xmmsc_playlist_set_next_rel(connection, 1);
-    xmmsc_result_wait (result);
+    //xmmsc_result_wait (result);
+    xmmsc_result_unref (result);
     result = xmmsc_playback_tickle(connection);
-    xmmsc_result_wait (result);
+   //xmmsc_result_wait (result);
     xmmsc_result_unref (result);
 }
 
 void MainWindow::on_prev_bt_clicked()
 {
     xmmsc_result_t *result = xmmsc_playlist_set_next_rel(connection, -1);
-    xmmsc_result_wait (result);
+    //xmmsc_result_wait (result);
+    xmmsc_result_unref (result);
     result = xmmsc_playback_tickle(connection);
-    xmmsc_result_wait (result);
+    //xmmsc_result_wait (result);
     xmmsc_result_unref (result);
 }
 
-void MainWindow::setLabelText(QString label)
+/*void MainWindow::setLabelText(QString label)
 {
 
-    label="test";
-   /* if (song_info != song_info_new){
-
-        song_info = song_info_new;
-        emit get_song_info(song_info_new);
-    }*/
 
 
-    ui->song_info->setText(label);
+
+    ui->song_info_label->setText(label);
 
 
 
 
 }
 
+*/
 
-
-void MainWindow::get_song_info()
+void get_song_info()
 {
     //int id;
     const char *err_buf;
@@ -272,28 +290,32 @@ void MainWindow::get_song_info()
                 !xmmsv_get_string (dict_entry, &val)) {
         val = "No Artist";
                 }
-    song_info.Artist=val;
+
+    song_info.artist=val;
     if (!xmmsv_dict_get (infos, "title", &dict_entry) ||
                 !xmmsv_get_string (dict_entry, &val)) {
        val = "No Title";
             }
-            printf ("title = %s\n", val);
 
 
 
-    song_info.Title = val;
+
+    song_info.title = val;
+
+    printf ("\n info = %s - %s \n", song_info.artist, song_info.title);
 
 
 
     xmmsv_unref (infos);
     xmmsc_result_unref (result);
    // xmmsc_unref (connection);
-   ui->song_info->setText(song_info.Title);
+   //ui->song_info->setText(song_info.Title);
+    //return TRUE;
 
 
 }
 
- int MainWindow::on_playback_status_changed( xmmsv_t *value, void *user_data )
+ int on_playback_status_changed( xmmsv_t *value, void *user_data )
 {
     if ( !xmmsv_get_int(value, &playback_status) )
         {
@@ -306,20 +328,63 @@ void MainWindow::get_song_info()
             case XMMS_PLAYBACK_STATUS_PLAY:
             {
 
-            ui->play_bt->setText("Play");
+            printf("Play");
                break;
 
             }
             case XMMS_PLAYBACK_STATUS_STOP:
-               ui->play_bt->setText("Stopped");
+               printf("Stopped");
                 break;
             case XMMS_PLAYBACK_STATUS_PAUSE:
-               ui->play_bt->setText("Pause");
+              printf("Pause");
 
                 break;
         }
 
 
+
+}
+
+ static int on_playback_started( xmmsv_t* value, void* user_data )
+ {
+ #if 0
+     /*xmmsc_result_unref(res);
+     // FIXME: this can cause some problems sometimes...
+     res = xmmsc_playlist_current_pos(con, cur_playlist);
+     xmmsc_result_notifier_set_and_unref(res, on_playlist_pos_changed, NULL); */
+ #endif
+     return TRUE;
+ }
+
+
+static int on_playback_cur_track_changed( xmmsv_t* value, void* user_data )
+ {
+     if( xmmsv_get_int(value, &cur_track_id) && cur_track_id != 0)
+     {
+         xmmsc_result_t *result2;
+         result2 = xmmsc_medialib_get_info(connection, cur_track_id);
+         xmmsc_result_notifier_set_and_unref(result2, on_playback_track_loaded, NULL);
+     }
+
+     return TRUE;
+ }
+
+static int on_playback_track_loaded( xmmsv_t* value, void* user_data )
+{
+
+    song_info_str song_info;
+    const char* err;
+    const char *guessed_title;
+
+        if (xmmsv_get_error (value, &err)) {
+            g_warning( "Server error: %s", err );
+            return TRUE;
+        }
+
+        get_song_info();
+
+
+   return TRUE;
 
 }
 
