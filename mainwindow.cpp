@@ -12,13 +12,9 @@
 #include <QtCore/QCoreApplication>
 #include <stdlib.h>
 #include <string.h>
-#include <iostream>
-#include <cstdlib>
 #include <xmmsclient/xmmsclient-glib.h>
 #include <xmmsclient/xmmsclient.h>
-//#include <xmmsclient/xmmsclient++.h>
 #include <glib.h>
-#include <glib/gprintf.h>
 
 
 static int32_t playback_status = 0;
@@ -68,15 +64,15 @@ void MainWindow::connect_xmms()
          }
 
 
+//
 
-
-void MainWindow::xmms_callbacks(){
+ void MainWindow::xmms_callbacks(){
 
     xmmsc_result_t* result;
 
     result = xmmsc_playback_status(connection);
 
-    MainWindow::xmmsc_result_notifier_set_and_unref(result, on_playback_status_changed, NULL);
+    xmmsc_result_notifier_set_and_unref(result, on_playback_status_changed, NULL);
 
     XMMS_CALLBACK_SET( connection, xmmsc_broadcast_playback_status, on_playback_status_changed, NULL );
 }
@@ -297,7 +293,7 @@ void MainWindow::get_song_info()
 
 }
 
-static int on_playback_status_changed( xmmsv_t *value, void *user_data )
+ int MainWindow::on_playback_status_changed( xmmsv_t *value, void *user_data )
 {
     if ( !xmmsv_get_int(value, &playback_status) )
         {
@@ -309,16 +305,16 @@ static int on_playback_status_changed( xmmsv_t *value, void *user_data )
         {
             case XMMS_PLAYBACK_STATUS_PLAY:
             {
-                //MainWindow::get_song_info();
-            printf("play");
+
+            ui->play_bt->setText("Play");
                break;
 
             }
             case XMMS_PLAYBACK_STATUS_STOP:
-               //for now we do nothing, just smile =)
+               ui->play_bt->setText("Stopped");
                 break;
             case XMMS_PLAYBACK_STATUS_PAUSE:
-               //MainWindow->ui->play_bt->setText("Pause");
+               ui->play_bt->setText("Pause");
 
                 break;
         }
