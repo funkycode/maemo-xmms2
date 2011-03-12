@@ -12,7 +12,7 @@
 
 #include <QtGui/QMainWindow>
 #include "QLabel"
-//#include <xmmsclient/xmmsclient.h>
+#include <xmmsclient/xmmsclient.h>
 
 namespace Ui {
     class MainWindow;
@@ -33,14 +33,13 @@ public:
     void setOrientation(ScreenOrientation orientation);
     void showExpanded();
 
-    //MainWindow() { song_id = 0; }
 
 
 public slots:
-    //void setLabelText(int id);
+    void setLabelText(QString label);
 
 
-
+    void get_song_info();
 private slots:
     void on_play_bt_clicked();
 
@@ -50,18 +49,33 @@ private slots:
 
     void on_prev_bt_clicked();
 
+    //int on_playback_status_changed( xmmsv_t *value, void *user_data )();
+
+    //static void xmms_callbacks();
+
+    void connect_xmms();
+
     //void setLabelText();
+
+
+
+
 
 private:
     Ui::MainWindow *ui;
-    QString song_info_new;
 
-    QString song_info;//() const { return song_info_new; }
-    void setLabelText(QString song_info);
+    //void setLabelText();
+     int my_current_id (xmmsv_t *value, void *userdata);
+
+     static int on_playback_status_changed( xmmsv_t *value, void *user_data );
+
+     static void xmms_callbacks();
+
+     void xmmsc_result_notifier_set_and_unref (xmmsc_result_t *result, xmmsc_result_notifier_t func, void *user_data);
 
 signals:
 
-    void get_song_info(QString song_info_new);
+   //void get_song_info();
 
 
 
