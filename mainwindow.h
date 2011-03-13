@@ -10,11 +10,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtGui/QMainWindow>
-#include "QLabel"
-#include <xmmsclient/xmmsclient.h>
+#include <QtGui>
+#include "xmms2con.h"
 
-namespace Ui {
+namespace Ui
+{
     class MainWindow;
 }
 
@@ -22,6 +22,9 @@ class MainWindow : public QMainWindow
 {
 
     Q_OBJECT
+     Ui::MainWindow *ui;
+     xmms2con *xmms2control;
+
 public:
     enum ScreenOrientation {
         ScreenOrientationLockPortrait,
@@ -50,9 +53,7 @@ private slots:
 
 
 
-private:
 
-    Ui::MainWindow *ui;
 
 signals:
 
