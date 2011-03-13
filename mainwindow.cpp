@@ -231,20 +231,20 @@ void MainWindow::on_prev_bt_clicked()
     xmmsc_result_unref (result);
 }
 
-/*void MainWindow::setLabelText(QString label)
+void MainWindow::setLabelText(QString label)
 {
 
 
 
 
-    ui->song_info_label->setText(label);
+    ui->song_info_label->setText("test");
 
 
 
 
 }
 
-*/
+
 
 void get_song_info()
 {
@@ -373,16 +373,17 @@ static int on_playback_track_loaded( xmmsv_t* value, void* user_data )
 {
 
     song_info_str song_info;
+    QString label="test";
     const char* err;
-    const char *guessed_title;
+
 
         if (xmmsv_get_error (value, &err)) {
             g_warning( "Server error: %s", err );
             return TRUE;
         }
 
-        get_song_info();
 
+    MainWindow->song_info_label->setText="test";
 
    return TRUE;
 

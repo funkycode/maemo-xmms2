@@ -33,6 +33,7 @@ public:
     void setOrientation(ScreenOrientation orientation);
     void showExpanded();
     void get_song_info();
+    void setLabelText(QString label);
 
 
 public slots:
