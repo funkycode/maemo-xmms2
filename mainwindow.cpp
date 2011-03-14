@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
       ui(new Ui::MainWindow),
       connector(new Xmms2Connector(this))
 {
+
     ui->setupUi(this);
 
     // Setting up the connector
@@ -98,7 +99,7 @@ void MainWindow::onPaused()
 
 void MainWindow::onStopped()
 {
-    ui->play_bt->setText("Start");
+    ui->play_bt->setText("Play");
 }
 
 void MainWindow::on_play_bt_clicked()
@@ -126,5 +127,5 @@ void MainWindow::on_prev_bt_clicked()
 
 void MainWindow::onSongChanged(SongData song)
 {
-    ui->song_info->setText(song.title);
+    ui->song_info->setText(song.artist+" - "+song.title+" ["+song.album+"]");
 }
