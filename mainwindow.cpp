@@ -127,5 +127,5 @@ void MainWindow::on_prev_bt_clicked()
 
 void MainWindow::onSongChanged(SongData song)
 {
-    ui->song_info->setText(song.artist+" - "+song.title+" ["+song.album+"]");
+    ui->song_info->setText("<b>"+song.artist+" - "+song.title+"</b>  <br> ["+song.album+"]");
 }
